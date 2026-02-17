@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, SafeAreaView, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { StyleSheet, Text, View, SafeAreaView, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 
 const OPERATORS = [
@@ -17,12 +16,33 @@ export default function MobileTopup() {
   const [amount, setAmount] = useState('');
   const [selectedOp, setSelectedOp] = useState('o');
 
-  // Номерди форматтоо (мисалы: 700 123 456)
+  // Төлөмдү ырастоо жана Чекке өтүү
+  const handleConfirm = () => {
+    if (phone.length < 9 || !amount) {
+      Alert.alert("Ката", "Номерди жана сумманы туура киргизиңиз");
+      return;
+    }
+
+    // Тандалган оператордун атын табуу
+    const opName = OPERATORS.find(op => op.id === selectedOp)?.name || 'Мобилдик байланыш';
+
+    // Чек барагына багыттоо
+    router.push({
+      pathname: "/receipt",
+      params: { 
+        name: opName, 
+        account: `+996 ${phone}`, 
+        amount: amount,
+        date: new Date().toLocaleString('ru-RU'),
+        transactionId: Math.floor(Math.random() * 1000000000).toString()
+      }
+    } as any);
+  };
+
   const handlePhoneChange = (text: string) => {
     const cleaned = text.replace(/[^0-9]/g, '');
     setPhone(cleaned);
     
-    // Номерге карап операторду автоматтык түрдө болжолдоо (мисалы)
     if (cleaned.startsWith('70') || cleaned.startsWith('50')) setSelectedOp('o');
     if (cleaned.startsWith('55') || cleaned.startsWith('99') || cleaned.startsWith('75')) setSelectedOp('mega');
     if (cleaned.startsWith('77') || cleaned.startsWith('22')) setSelectedOp('beeline');
@@ -34,7 +54,6 @@ export default function MobileTopup() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
         style={{ flex: 1 }}
       >
-        {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
             <Ionicons name="chevron-back" size={28} color="#1A1A1A" />
@@ -45,7 +64,6 @@ export default function MobileTopup() {
 
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           
-          {/* Операторлор */}
           <View style={styles.operatorRow}>
             {OPERATORS.map((op) => (
               <TouchableOpacity 
@@ -63,7 +81,6 @@ export default function MobileTopup() {
             ))}
           </View>
 
-          {/* Телефон номери */}
           <View style={styles.inputGroup}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
               <Text style={styles.inputLabel}>Телефон номери</Text>
@@ -84,7 +101,6 @@ export default function MobileTopup() {
             </View>
           </View>
 
-          {/* Сумма */}
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>Сумма</Text>
             <View style={styles.amountInputRow}>
@@ -98,7 +114,6 @@ export default function MobileTopup() {
               <Text style={styles.currency}>сом</Text>
             </View>
             
-            {/* Тез тандоо суммалары */}
             <View style={styles.quickAmountRow}>
               {QUICK_AMOUNTS.map((val) => (
                 <TouchableOpacity 
@@ -112,13 +127,11 @@ export default function MobileTopup() {
             </View>
           </View>
 
-          {/* Маалымат */}
           <View style={styles.infoBox}>
             <Ionicons name="information-circle-outline" size={20} color="#888" />
             <Text style={styles.infoText}>Комиссия 0%</Text>
           </View>
 
-          {/* Төлөө баскычы */}
           <TouchableOpacity 
             style={[
               styles.confirmBtn, 
@@ -126,6 +139,7 @@ export default function MobileTopup() {
             ]} 
             activeOpacity={0.8}
             disabled={!(phone.length >= 9 && amount)}
+            onPress={handleConfirm} // Иштетүү функциясы
           >
             <Text style={styles.confirmBtnText}>Төлөө</Text>
           </TouchableOpacity>
@@ -135,38 +149,18 @@ export default function MobileTopup() {
     </SafeAreaView>
   );
 }
-
+// Styles өзгөрүүсүз калат...
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8F9FB' },
-  header: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center', 
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-  },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 15, paddingVertical: 10 },
   backBtn: { width: 40, height: 40, justifyContent: 'center' },
   headerTitle: { fontSize: 18, fontWeight: '700', color: '#1A1A1A' },
   content: { padding: 20 },
-  operatorRow: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-around',
-    marginBottom: 30 
-  },
+  operatorRow: { flexDirection: 'row', justifyContent: 'space-around', marginBottom: 30 },
   opCircle: { width: 70, height: 70, borderRadius: 35, padding: 3, justifyContent: 'center', alignItems: 'center' },
   innerCircle: { width: '100%', height: '100%', borderRadius: 35, justifyContent: 'center', alignItems: 'center' },
   opText: { color: '#FFF', fontWeight: 'bold', fontSize: 14 },
-  inputGroup: { 
-    backgroundColor: '#FFF', 
-    padding: 18, 
-    borderRadius: 24, 
-    marginBottom: 15,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2
-  },
+  inputGroup: { backgroundColor: '#FFF', padding: 18, borderRadius: 24, marginBottom: 15, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 2 },
   inputLabel: { fontSize: 12, color: '#AAA', marginBottom: 8, fontWeight: '600' },
   phoneInputRow: { flexDirection: 'row', alignItems: 'center' },
   amountInputRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
@@ -174,25 +168,10 @@ const styles = StyleSheet.create({
   mainInput: { fontSize: 22, fontWeight: '600', flex: 1, color: '#1A1A1A' },
   currency: { fontSize: 18, color: '#888', fontWeight: '500' },
   quickAmountRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 15 },
-  amountChip: { 
-    backgroundColor: '#F5F5F5', 
-    paddingVertical: 8, 
-    paddingHorizontal: 12, 
-    borderRadius: 12 
-  },
+  amountChip: { backgroundColor: '#F5F5F5', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 12 },
   amountChipText: { fontSize: 14, fontWeight: '600', color: '#1A1A1A' },
   infoBox: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 10 },
   infoText: { marginLeft: 5, color: '#888', fontSize: 14 },
-  confirmBtn: { 
-    padding: 18, 
-    borderRadius: 22, 
-    alignItems: 'center', 
-    marginTop: 30,
-    shadowColor: '#2ECC71',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4
-  },
+  confirmBtn: { padding: 18, borderRadius: 22, alignItems: 'center', marginTop: 30, shadowColor: '#2ECC71', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 4 },
   confirmBtnText: { color: '#FFF', fontSize: 18, fontWeight: 'bold' }
 });

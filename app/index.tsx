@@ -106,7 +106,7 @@ export default function LoginScreen() {
           <View style={styles.avatarCircle}>
             <Text style={{fontSize: 42}}>👤</Text>
           </View>
-          <Text style={styles.welcomeTitle}>Куш келиңиз,</Text>
+          <Text style={styles.welcomeTitle}>Кош келиңиз,</Text>
           <Text style={styles.userName}>Набиев Айбек</Text>
         </Animated.View>
       )}
